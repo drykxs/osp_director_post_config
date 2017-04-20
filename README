@@ -1,4 +1,4 @@
-#  osp_director_post_config
+# osp_director_post_config
 
 This script is intended to streamline the configuration necessary after a Red Hat OpenStack Platform deployment done with Director. This script has four functions:  
 
