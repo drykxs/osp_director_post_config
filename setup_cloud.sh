@@ -5,6 +5,14 @@ function help-msg {
 }
 
 function setup-overcloud {
+  . ~/stackrc
+  #configure hosts file on undercloud
+  grep -v overcloud /etc/hosts > /tmp/hosts.new
+  nova list --fields name,networks | awk '/overcloud/ { gsub("ctlplane=",""); print $6" "$4; }' | tee -a /tmp/hosts.new
+  sudo cp /etc/hosts /etc/hosts.backup
+  sudo mv -f /tmp/hosts.new /etc/hosts
+
+  . ~/overcloudrc
   if ! openstack image list -c Name -f value | grep -q cirros; then 
     pushd .
     cd /tmp
@@ -19,8 +27,8 @@ function setup-overcloud {
     neutron net-create public -- --router:external=true  --provider:network_type=flat  --provider:physical_network=datacentre
   fi
   if ! neutron subnet-list -c name -f value | grep -q public-subnet; then
-    #neutron subnet-create public --name public-subnet --allocation-pool start=192.168.122.180,end=192.168.122.220 192.168.122.0/24
-    neutron subnet-create public --name public-subnet --allocation-pool start=172.16.0.128,end=172.16.0.199 172.16.0.0/24
+    neutron subnet-create public --name public-subnet --allocation-pool start=192.168.122.180,end=192.168.122.220 192.168.122.0/24
+    #neutron subnet-create public --name public-subnet --allocation-pool start=172.16.0.128,end=172.16.0.199 172.16.0.0/24
   fi
   help-msg
 }
