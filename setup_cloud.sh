@@ -8,7 +8,7 @@ function setup-overcloud {
   . ~/stackrc
   #configure hosts file on undercloud
   grep -v overcloud /etc/hosts > /tmp/hosts.new
-  nova list --fields name,networks | awk '/overcloud/ { gsub("ctlplane=",""); print $6" "$4; }' | tee -a /tmp/hosts.new
+  nova list --fields name,networks | awk '/overcloud/ { gsub("ctlplane=",""); print $6" "$4; }' >> /tmp/hosts.new
   sudo cp /etc/hosts /etc/hosts.backup
   sudo mv -f /tmp/hosts.new /etc/hosts
 
@@ -53,7 +53,7 @@ function create-tenant {
     --port-range-max 22 default
   neutron security-group-rule-create --direction ingress \
    --ethertype IPv4 --protocol icmp default
-  nova keypair-add my_key
+  nova keypair-add demo-key
   help-msg
 }
  
@@ -84,13 +84,18 @@ function setup-tenant-network {
 
 function create-instance {
   tenant=$1
+  count=$2 #number of instances
+  if [ -z $count ]; then count=1; fi
   . ~/overcloudrc
   export OS_TENANT_NAME=$tenant
   export OS_USERNAME=$tenant
   export OS_PASSWORD=$tenant
-  nova boot --flavor m1.tiny --image cirros --nic net-name=$tenant-private1-net $tenant-test01
-  sleep 5
-  nova floating-ip-associate $tenant-test01 $(neutron floatingip-create -c floating_ip_address -f value  public)
+  for i in $(seq 1 $count); do 
+    nova boot --flavor m1.tiny --image cirros --nic net-name=$tenant-private1-net $tenant-test$i
+    sleep 5
+    nova floating-ip-associate $tenant-test$i $(neutron floatingip-create -c floating_ip_address -f value  public)
+  done
+
   help-msg
 }
 
