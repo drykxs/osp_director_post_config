@@ -38,7 +38,7 @@ function create-tenant {
   tenant=$1
   openstack project create $tenant
   openstack user create --password $tenant --project $tenant $tenant
-  openstack role add --project $tenant --use admin admin
+  openstack role add --project $tenant --user admin admin
   #this works if run for admin project (or any other)
   export OS_USERNAME=$tenant
   export OS_TENANT_NAME=$tenant
