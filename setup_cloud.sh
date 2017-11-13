@@ -1,7 +1,8 @@
 . ~/overcloudrc
 
 function help-msg {
-  echo "try setup-overcloud, create-tenant <tenant name>, setup-tenant-network <tenant name>, create-instance <tenant name>"
+  echo " "
+  echo "usage: setup-overcloud, create-tenant <tenant name>, setup-tenant-network <tenant name>, create-instance <tenant name>"
 }
 
 function setup-overcloud {
@@ -17,7 +18,7 @@ function setup-overcloud {
     pushd .
     cd /tmp
     wget http://download.cirros-cloud.net/0.3.5/cirros-0.3.5-x86_64-disk.img 
-    openstack image create --file cirros-0.3.5-x86_64-disk.img --public cirros
+    openstack image create --file cirros-0.3.5-x86_64-disk.img --disk-format qcow2 --public cirros
     popd 
   fi
   if ! openstack flavor list -c Name -f value | grep -q 'm1.tiny'; then 
@@ -42,6 +43,7 @@ function create-tenant {
   #this works if run for admin project (or any other)
   export OS_USERNAME=$tenant
   export OS_TENANT_NAME=$tenant
+  export OS_PROJECT_NAME=$tenant
   export OS_PASSWORD=$tenant
   default_security_group_id=$(openstack security group list -c ID -c Name -c Project -f value | \
     grep $(openstack project show $tenant -c id -f value) | grep default | awk '{ print $1 }')
@@ -64,6 +66,7 @@ function setup-tenant-network {
   networkname="$tenant-private1-net"
   export OS_USERNAME=$tenant
   export OS_TENANT_NAME=$tenant
+  export OS_PROJECT_NAME=$tenant
   export OS_PASSWORD=$tenant
 
   if ! neutron net-list  --name $networkname -c name -f value | grep -q $networkname; then 
@@ -88,6 +91,7 @@ function create-instance {
   if [ -z $count ]; then count=1; fi
   . ~/overcloudrc
   export OS_TENANT_NAME=$tenant
+  export OS_PROJECT_NAME=$tenant
   export OS_USERNAME=$tenant
   export OS_PASSWORD=$tenant
   for i in $(seq 1 $count); do 
