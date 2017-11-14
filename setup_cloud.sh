@@ -14,13 +14,23 @@ function setup-overcloud {
   sudo mv -f /tmp/hosts.new /etc/hosts
 
   . ~/overcloudrc
-  if ! openstack image list -c Name -f value | grep -q cirros; then 
+  if ! openstack image list -c Name -f value | grep -q cirros; then
     pushd .
     cd /tmp
-    wget http://download.cirros-cloud.net/0.3.5/cirros-0.3.5-x86_64-disk.img 
-    openstack image create --file cirros-0.3.5-x86_64-disk.img --disk-format qcow2 --public cirros
+    wget http://download.cirros-cloud.net/0.3.5/cirros-0.3.5-x86_64-disk.img
+    read -p "1) create qcow2 image or 2) raw image for ceph: " imgtype
+    if [ $imgtype -eq 1 ]; then
+      openstack image create --file cirros-0.3.5-x86_64-disk.img --disk-format qcow2 --public cirros
+    elif [ $imgtype -eq 2 ]; then
+      echo "converting qcow2 img to raw..."
+      mv cirros-0.3.5-x86_64-disk.img cirros-0.3.5-x86_64-disk.qcow2
+      qemu-img convert -f qcow2 -O raw cirros-0.3.5-x86_64-disk.qcow2 cirros-0.3.5-x86_64-disk.img
+      echo "creating image..."
+      openstack image create --file cirros-0.3.5-x86_64-disk.img --disk-format raw --public cirros
+    fi
     popd 
   fi
+
   if ! openstack flavor list -c Name -f value | grep -q 'm1.tiny'; then 
     openstack flavor create --public m1.tiny --id auto --ram 512 --disk 10 --vcpus 1
   fi 
