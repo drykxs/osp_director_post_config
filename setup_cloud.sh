@@ -34,13 +34,13 @@ function setup-overcloud {
   if ! openstack flavor list -c Name -f value | grep -q 'm1.tiny'; then 
     openstack flavor create --public m1.tiny --id auto --ram 512 --disk 10 --vcpus 1
   fi 
-  if ! neutron net-list  --name public -c name -f value | grep -q public; then 
-    neutron net-create public -- --router:external=true  --provider:network_type=flat  --provider:physical_network=datacentre
-  fi
-  if ! neutron subnet-list -c name -f value | grep -q public-subnet; then
-    neutron subnet-create public --name public-subnet --allocation-pool start=192.168.122.180,end=192.168.122.220 192.168.122.0/24
+#  if ! neutron net-list  --name public -c name -f value | grep -q public; then 
+#    neutron net-create public -- --router:external=true  --provider:network_type=flat  --provider:physical_network=datacentre
+#  fi
+#  if ! neutron subnet-list -c name -f value | grep -q public-subnet; then
+#    neutron subnet-create public --name public-subnet --allocation-pool start=192.168.122.180,end=192.168.122.220 192.168.122.0/24
     #neutron subnet-create public --name public-subnet --allocation-pool start=172.16.0.128,end=172.16.0.199 172.16.0.0/24
-  fi
+#  fi
   help-msg
 }
 
@@ -50,7 +50,8 @@ function create-tenant {
   openstack project create $tenant
   openstack user create --password $tenant --project $tenant $tenant
   openstack role add --project $tenant --user admin admin
-  #this works if run for admin project (or any other)
+  openstack role add --project $tenant --user $tenant admin
+  openstack security group create --project $tenant $tenant
   export OS_USERNAME=$tenant
   export OS_TENANT_NAME=$tenant
   export OS_PROJECT_NAME=$tenant
