@@ -106,7 +106,7 @@ function create-instance {
   export OS_USERNAME=$tenant
   export OS_PASSWORD=$tenant
   for i in $(seq 1 $count); do 
-    nova boot --flavor m1.tiny --image cirros --nic net-name=$tenant-private1-net $tenant-test$i
+    nova boot --flavor m1.tiny --image rhel75 --nic net-name=$tenant-private1-net $tenant-test$i
     sleep 5
     nova floating-ip-associate $tenant-test$i $(neutron floatingip-create -c floating_ip_address -f value  public)
   done
