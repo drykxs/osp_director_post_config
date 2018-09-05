@@ -51,7 +51,6 @@ function create-tenant {
   openstack user create --password $tenant --project $tenant $tenant
   openstack role add --project $tenant --user admin admin
   openstack role add --project $tenant --user $tenant admin
-  openstack security group create --project $tenant $tenant
   export OS_USERNAME=$tenant
   export OS_TENANT_NAME=$tenant
   export OS_PROJECT_NAME=$tenant
@@ -61,11 +60,9 @@ function create-tenant {
   echo default_security_group_id=$default_security_group_id
 #  openstack security group rule create --ingress --ethertype IPv4 --protocol icmp $default_security_group_id
 #  openstack security group rule create --ingress --ethertype IPv4 --protocol tcp --dst-port 22 $default_security_group_id
-  neutron security-group-rule-create --direction ingress \
-    --ethertype IPv4 --protocol tcp --port-range-min 22 \
-    --port-range-max 22 default
-  neutron security-group-rule-create --direction ingress \
-   --ethertype IPv4 --protocol icmp default
+  neutron security-group-rule-create --direction ingress --ethertype IPv4 --protocol tcp --port-range-min 22 --port-range-max 22 $default_security_group_id
+  neutron security-group-rule-create --direction ingress --ethertype IPv4 --protocol icmp $default_security_group_id
+  set +x
   nova keypair-add demo-key
   help-msg
 }
